@@ -2,8 +2,9 @@
   <div id="page-wrapper" class="w-full h-screen overflow-y-auto">
     <div class="absolute z-0 top-0 left-0 px-6 py-3">
       <div class="flex items-center">
-        <img src="~static/icon.svg" alt="Audiobookshelf Logo" class="w-10 min-w-10 h-10" />
-        <h1 class="text-xl ml-4 hidden lg:block hover:underline">audiobookshelf</h1>
+        <img src="~static/icon.svg" alt="Privacy Audiobook Server Logo" class="w-10 min-w-10 h-10" />
+        <h1 class="text-xl ml-4 hidden lg:block hover:underline">AudiobookRegal</h1>
+        <span class="ml-2 text-xs px-2 py-0.5 bg-green-600/30 text-green-400 rounded hidden lg:inline-block">Privacy Mode</span>
       </div>
     </div>
 
@@ -69,6 +70,24 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Privacy Enhancement: Legal footer links (GDPR compliance) -->
+    <div class="absolute bottom-0 left-0 right-0 p-4 text-center">
+      <div class="flex justify-center items-center space-x-4 text-sm text-white/50">
+        <a v-if="privacyPolicyUrl" :href="privacyPolicyUrl" target="_blank" class="hover:text-white hover:underline">
+          {{ $strings.LabelPrivacyPolicy || 'Privacy Policy' }}
+        </a>
+        <span v-if="privacyPolicyUrl && imprintUrl" class="text-white/30">|</span>
+        <a v-if="imprintUrl" :href="imprintUrl" target="_blank" class="hover:text-white hover:underline">
+          {{ $strings.LabelImprint || 'Imprint' }}
+        </a>
+        <span v-if="(privacyPolicyUrl || imprintUrl) && dataExportEnabled" class="text-white/30">|</span>
+        <span v-if="dataExportEnabled" class="text-white/40 text-xs">
+          {{ $strings.LabelGDPRCompliant || 'GDPR Compliant' }}
+        </span>
+      </div>
+      <p class="text-xs text-white/30 mt-2">Privacy-enhanced AudiobookRegal Server</p>
     </div>
   </div>
 </template>
@@ -139,6 +158,21 @@ export default {
     },
     loginCustomMessage() {
       return this.authFormData?.authLoginCustomMessage || null
+    },
+    // Privacy Enhancement: Legal links for GDPR compliance
+    privacyPolicyUrl() {
+      // Can be configured via server settings or environment variable
+      // Default: null (not shown if not configured)
+      return this.authFormData?.privacyPolicyUrl || process.env.PRIVACY_POLICY_URL || null
+    },
+    imprintUrl() {
+      // Can be configured via server settings or environment variable
+      // Default: null (not shown if not configured)
+      return this.authFormData?.imprintUrl || process.env.IMPRINT_URL || null
+    },
+    dataExportEnabled() {
+      // Always true for this privacy-enhanced fork
+      return true
     }
   },
   methods: {

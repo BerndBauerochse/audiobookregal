@@ -1,5 +1,18 @@
 const uuidv4 = require("uuid").v4
 
+// Privacy Enhancement: Generic device identifiers for anonymization
+const PRIVACY_GENERIC_DEVICE = {
+  clientName: 'Generic Client',
+  deviceName: 'Generic Device',
+  model: 'Generic Device',
+  manufacturer: 'Generic',
+  osName: 'Generic OS',
+  osVersion: '',
+  browserName: 'Generic Browser',
+  browserVersion: '',
+  sdkVersion: null
+}
+
 class DeviceInfo {
   constructor(deviceInfo = null) {
     this.id = null
@@ -62,7 +75,41 @@ class DeviceInfo {
     return obj
   }
 
+  /**
+   * Privacy Enhancement: Returns anonymized device info for admin-visible contexts
+   * This prevents surveillance of specific device types/models while maintaining sync functionality
+   * @returns {Object}
+   */
+  toAnonymizedJSON() {
+    return {
+      id: this.id,
+      userId: this.userId,
+      deviceId: this.deviceId,
+      ipAddress: null, // IP is anonymized separately
+      browserName: PRIVACY_GENERIC_DEVICE.browserName,
+      browserVersion: PRIVACY_GENERIC_DEVICE.browserVersion,
+      osName: PRIVACY_GENERIC_DEVICE.osName,
+      osVersion: PRIVACY_GENERIC_DEVICE.osVersion,
+      deviceType: 'generic',
+      clientVersion: this.clientVersion,
+      manufacturer: PRIVACY_GENERIC_DEVICE.manufacturer,
+      model: PRIVACY_GENERIC_DEVICE.model,
+      sdkVersion: PRIVACY_GENERIC_DEVICE.sdkVersion,
+      clientName: PRIVACY_GENERIC_DEVICE.clientName,
+      deviceName: PRIVACY_GENERIC_DEVICE.deviceName
+    }
+  }
+
   get deviceDescription() {
+    // Privacy Enhancement: Return generic device description to prevent device fingerprinting
+    return `${PRIVACY_GENERIC_DEVICE.deviceName} / v${this.clientVersion || 'Unknown'}`
+  }
+
+  /**
+   * Original device description (for internal use only, not exposed to admin UIs)
+   * @returns {string}
+   */
+  get deviceDescriptionInternal() {
     if (this.model) { // Set from mobile apps
       if (this.sdkVersion) return `${this.model} SDK ${this.sdkVersion} / v${this.clientVersion}`
       return `${this.model} / v${this.clientVersion}`
@@ -71,18 +118,12 @@ class DeviceInfo {
   }
 
   // When client doesn't send a device id
+  // Privacy Enhancement: Use only non-identifying data for temp device ID
   getTempDeviceId() {
     const keys = [
       this.userId,
-      this.browserName,
-      this.browserVersion,
-      this.osName,
-      this.osVersion,
       this.clientVersion,
-      this.manufacturer,
-      this.model,
-      this.sdkVersion,
-      this.ipAddress
+      uuidv4() // Add randomness instead of device fingerprinting data
     ].map(k => k || '')
     return 'temp-' + Buffer.from(keys.join('-'), 'utf-8').toString('base64')
   }
@@ -91,32 +132,24 @@ class DeviceInfo {
     this.id = uuidv4()
     this.userId = userId
     this.deviceId = clientDeviceInfo?.deviceId || this.id
-    this.ipAddress = ip || null
 
-    this.browserName = ua?.browser.name || null
-    this.browserVersion = ua?.browser.version || null
-    this.osName = ua?.os.name || null
-    this.osVersion = ua?.os.version || null
-    this.deviceType = ua?.device.type || null
+    // Privacy Enhancement: Anonymize IP address (store null, real IP handled separately for logging with anonymization)
+    this.ipAddress = null
+
+    // Privacy Enhancement: Store generic device info instead of actual device fingerprints
+    this.browserName = PRIVACY_GENERIC_DEVICE.browserName
+    this.browserVersion = PRIVACY_GENERIC_DEVICE.browserVersion
+    this.osName = PRIVACY_GENERIC_DEVICE.osName
+    this.osVersion = PRIVACY_GENERIC_DEVICE.osVersion
+    this.deviceType = 'generic'
 
     this.clientVersion = clientDeviceInfo?.clientVersion || serverVersion
-    this.manufacturer = clientDeviceInfo?.manufacturer || null
-    this.model = clientDeviceInfo?.model || null
-    this.sdkVersion = clientDeviceInfo?.sdkVersion || null
+    this.manufacturer = PRIVACY_GENERIC_DEVICE.manufacturer
+    this.model = PRIVACY_GENERIC_DEVICE.model
+    this.sdkVersion = PRIVACY_GENERIC_DEVICE.sdkVersion
 
-    this.clientName = clientDeviceInfo?.clientName || null
-    if (this.sdkVersion) {
-      if (!this.clientName) this.clientName = 'Abs Android'
-      this.deviceName = `${this.manufacturer || 'Unknown'} ${this.model || ''}`
-    } else if (this.model) {
-      if (!this.clientName) this.clientName = 'Abs iOS'
-      this.deviceName = `${this.manufacturer || 'Unknown'} ${this.model || ''}`
-    } else if (this.osName && this.browserName) {
-      if (!this.clientName) this.clientName = 'Abs Web'
-      this.deviceName = `${this.osName} ${this.osVersion || 'N/A'} ${this.browserName}`
-    } else if (!this.clientName) {
-      this.clientName = 'Unknown'
-    }
+    this.clientName = PRIVACY_GENERIC_DEVICE.clientName
+    this.deviceName = PRIVACY_GENERIC_DEVICE.deviceName
 
     if (!this.deviceId) {
       this.deviceId = this.getTempDeviceId()

@@ -473,5 +473,98 @@ class MeController {
     const data = await userStats.getStatsForYear(req.user.id, year)
     res.json(data)
   }
+
+  /**
+   * GET: /api/me/data-export
+   *
+   * Privacy Enhancement (GDPR Article 20 - Right to Data Portability):
+   * Allows users to download all their stored personal data as a JSON file.
+   * This includes: profile info, media progress, bookmarks, and listening history.
+   *
+   * @this import('../routers/ApiRouter')
+   *
+   * @param {RequestWithUser} req
+   * @param {Response} res
+   */
+  async exportUserData(req, res) {
+    try {
+      Logger.info(`[MeController] User "${req.user.username}" requested data export (GDPR)`)
+
+      // Collect all user data
+      const userData = {
+        exportDate: new Date().toISOString(),
+        exportVersion: '1.0',
+        privacyNotice: 'This export contains all personal data stored about you in compliance with GDPR Article 20.',
+
+        // Basic profile information
+        profile: {
+          id: req.user.id,
+          username: req.user.username,
+          email: req.user.email || null,
+          type: req.user.type,
+          createdAt: req.user.createdAt,
+          isActive: req.user.isActive
+        },
+
+        // Media progress (reading/listening positions)
+        mediaProgress: req.user.mediaProgresses.map((mp) => ({
+          id: mp.id,
+          mediaItemId: mp.mediaItemId,
+          mediaItemType: mp.mediaItemType,
+          duration: mp.duration,
+          currentTime: mp.currentTime,
+          progress: mp.progress,
+          isFinished: mp.isFinished,
+          ebookLocation: mp.ebookLocation,
+          ebookProgress: mp.ebookProgress,
+          hideFromContinueListening: mp.hideFromContinueListening,
+          finishedAt: mp.finishedAt,
+          createdAt: mp.createdAt,
+          updatedAt: mp.updatedAt
+        })),
+
+        // Bookmarks
+        bookmarks: req.user.bookmarks.map((bm) => ({
+          libraryItemId: bm.libraryItemId,
+          title: bm.title,
+          time: bm.time,
+          createdAt: bm.createdAt
+        })),
+
+        // User preferences/settings (non-sensitive)
+        preferences: {
+          seriesHideFromContinueListening: req.user.extraData?.seriesHideFromContinueListening || []
+        }
+      }
+
+      // Get user's listening sessions (historical data)
+      const listeningSessions = await this.getUserListeningSessionsHelper(req.user.id)
+      userData.listeningHistory = listeningSessions.map((session) => ({
+        id: session.id,
+        displayTitle: session.displayTitle,
+        displayAuthor: session.displayAuthor,
+        duration: session.duration,
+        playMethod: session.playMethod,
+        startTime: session.startTime,
+        currentTime: session.currentTime,
+        timeListening: session.timeListening,
+        date: session.date,
+        dayOfWeek: session.dayOfWeek,
+        createdAt: session.createdAt,
+        updatedAt: session.updatedAt
+        // Note: deviceInfo is intentionally excluded for privacy
+      }))
+
+      // Set headers for file download
+      const filename = `user-data-export-${req.user.username}-${new Date().toISOString().split('T')[0]}.json`
+      res.setHeader('Content-Type', 'application/json')
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+
+      res.json(userData)
+    } catch (error) {
+      Logger.error(`[MeController] Failed to export user data for "${req.user.username}":`, error)
+      res.status(500).send('Failed to export user data')
+    }
+  }
 }
 module.exports = new MeController()

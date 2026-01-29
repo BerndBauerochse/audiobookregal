@@ -2,6 +2,45 @@ const date = require('./libs/dateAndTime')
 const { LogLevel } = require('./utils/constants')
 const util = require('util')
 
+/**
+ * Privacy Enhancement: Utility function to anonymize IP addresses
+ * Masks the last octet of IPv4 addresses and the last 80 bits of IPv6 addresses
+ * @param {string} ip - The IP address to anonymize
+ * @returns {string} - Anonymized IP address
+ */
+function anonymizeIP(ip) {
+  if (!ip || typeof ip !== 'string') return 'unknown'
+
+  // Handle IPv4
+  if (ip.includes('.') && !ip.includes(':')) {
+    const parts = ip.split('.')
+    if (parts.length === 4) {
+      return `${parts[0]}.${parts[1]}.${parts[2]}.xxx`
+    }
+  }
+
+  // Handle IPv6 (including IPv4-mapped IPv6)
+  if (ip.includes(':')) {
+    // For IPv4-mapped IPv6 (::ffff:192.168.1.1)
+    if (ip.includes('::ffff:')) {
+      const ipv4Part = ip.split('::ffff:')[1]
+      if (ipv4Part) {
+        const parts = ipv4Part.split('.')
+        if (parts.length === 4) {
+          return `::ffff:${parts[0]}.${parts[1]}.${parts[2]}.xxx`
+        }
+      }
+    }
+    // For pure IPv6, mask the last 5 groups (80 bits)
+    const parts = ip.split(':')
+    if (parts.length >= 4) {
+      return `${parts.slice(0, 3).join(':')}:xxxx:xxxx:xxxx:xxxx:xxxx`
+    }
+  }
+
+  return 'anonymized'
+}
+
 class Logger {
   constructor() {
     /** @type {import('./managers/LogManager')} */
@@ -11,6 +50,15 @@ class Logger {
 
     this.logLevel = !this.isDev ? LogLevel.INFO : LogLevel.TRACE
     this.socketListeners = []
+  }
+
+  /**
+   * Privacy Enhancement: Anonymize IP address for GDPR compliance
+   * @param {string} ip - The IP address to anonymize
+   * @returns {string} - Anonymized IP address
+   */
+  static anonymizeIP(ip) {
+    return anonymizeIP(ip)
   }
 
   /**
@@ -63,6 +111,34 @@ class Logger {
   }
 
   /**
+   * Privacy Enhancement: Anonymize IP addresses in log messages
+   * @param {string} message - The log message
+   * @returns {string} - Message with anonymized IPs
+   */
+  #anonymizeIPsInMessage(message) {
+    if (!message || typeof message !== 'string') return message
+
+    // IPv4 pattern (including those in IPv6 format)
+    const ipv4Pattern = /\b(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\b/g
+    message = message.replace(ipv4Pattern, (match, p1, p2, p3, p4) => {
+      // Validate it's a real IP (each octet 0-255)
+      if ([p1, p2, p3, p4].every(octet => parseInt(octet) <= 255)) {
+        return `${p1}.${p2}.${p3}.xxx`
+      }
+      return match
+    })
+
+    // IPv6 pattern (simplified - full addresses)
+    const ipv6Pattern = /\b([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b/g
+    message = message.replace(ipv6Pattern, (match) => {
+      const parts = match.split(':')
+      return `${parts.slice(0, 3).join(':')}:xxxx:xxxx:xxxx:xxxx:xxxx`
+    })
+
+    return message
+  }
+
+  /**
    *
    * @param {number} level
    * @param {string} levelName
@@ -71,10 +147,14 @@ class Logger {
    */
   async #logToFileAndListeners(level, levelName, args, src) {
     const expandedArgs = args.map((arg) => (typeof arg !== 'string' ? util.inspect(arg) : arg))
+
+    // Privacy Enhancement: Anonymize any IP addresses in log messages
+    const anonymizedMessage = this.#anonymizeIPsInMessage(expandedArgs.join(' '))
+
     const logObj = {
       timestamp: this.timestamp,
       source: src,
-      message: expandedArgs.join(' '),
+      message: anonymizedMessage,
       levelName,
       level
     }

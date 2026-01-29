@@ -21,6 +21,9 @@ class SessionController {
   /**
    * GET: /api/sessions
    *
+   * Privacy Enhancement: This endpoint has been disabled to prevent admin surveillance
+   * of user listening activity. Admins can no longer view detailed session history.
+   *
    * @this import('../routers/ApiRouter')
    *
    * @param {RequestWithUser} req
@@ -31,81 +34,19 @@ class SessionController {
       Logger.error(`[SessionController] getAllWithUserData: Non-admin user "${req.user.username}" requested all session data`)
       return res.sendStatus(404)
     }
-    // Validate "user" query
-    let userId = req.query.user
-    if (userId && !isUUID(userId)) {
-      Logger.warn(`[SessionController] Invalid "user" query string "${userId}"`)
-      userId = null
-    }
-    // Validate "sort" query
-    const validSortOrders = ['displayTitle', 'duration', 'playMethod', 'startTime', 'currentTime', 'timeListening', 'updatedAt', 'createdAt']
-    let orderKey = req.query.sort || 'updatedAt'
-    if (!validSortOrders.includes(orderKey)) {
-      Logger.warn(`[SessionController] Invalid "sort" query string "${orderKey}" (Must be one of "${validSortOrders.join('|')}")`)
-      orderKey = 'updatedAt'
-    }
-    let orderDesc = req.query.desc === '1' ? 'DESC' : 'ASC'
-    // Validate "itemsPerPage" and "page" query
-    let itemsPerPage = toNumber(req.query.itemsPerPage, 10) || 10
-    if (itemsPerPage < 1) {
-      Logger.warn(`[SessionController] Invalid "itemsPerPage" query string "${itemsPerPage}"`)
-      itemsPerPage = 10
-    }
-    let page = toNumber(req.query.page, 0)
-    if (page < 0) {
-      Logger.warn(`[SessionController] Invalid "page" query string "${page}"`)
-      page = 0
-    }
 
-    let where = null
-
-    if (userId) {
-      where = {
-        userId
-      }
-    }
-
-    const { rows, count } = await Database.playbackSessionModel.findAndCountAll({
-      where,
-      include: [
-        {
-          model: Database.deviceModel
-        },
-        {
-          model: Database.userModel,
-          attributes: ['id', 'username']
-        }
-      ],
-      order: [[orderKey, orderDesc]],
-      limit: itemsPerPage,
-      offset: itemsPerPage * page
-    })
-
-    // Map playback sessions to old playback sessions
-    const sessions = rows.map((session) => {
-      const oldPlaybackSession = Database.playbackSessionModel.getOldPlaybackSession(session)
-      if (session.user) {
-        return {
-          ...oldPlaybackSession,
-          user: {
-            id: session.user.id,
-            username: session.user.username
-          }
-        }
-      } else {
-        return oldPlaybackSession.toJSON()
-      }
-    })
+    // Privacy Enhancement: Return empty session list to prevent admin surveillance
+    // User playback progress is still saved for sync purposes, but detailed session
+    // history (who listened to what, when, on which device) is no longer exposed
+    Logger.info(`[SessionController] Privacy mode: Session history endpoint disabled for admin surveillance prevention`)
 
     const payload = {
-      total: count,
-      numPages: Math.ceil(count / itemsPerPage),
-      page,
-      itemsPerPage,
-      sessions
-    }
-    if (userId) {
-      payload.userId = userId
+      total: 0,
+      numPages: 0,
+      page: 0,
+      itemsPerPage: 10,
+      sessions: [],
+      privacyNotice: 'Session history has been disabled for privacy protection. User playback progress sync remains functional.'
     }
 
     res.json(payload)
@@ -113,6 +54,9 @@ class SessionController {
 
   /**
    * GET: /api/sessions/open
+   *
+   * Privacy Enhancement: This endpoint has been disabled to prevent admin surveillance
+   * of currently active user sessions.
    *
    * @this {import('../routers/ApiRouter')}
    *
@@ -125,19 +69,13 @@ class SessionController {
       return res.sendStatus(404)
     }
 
-    const minifiedUserObjects = await Database.userModel.getMinifiedUserObjects()
-    const openSessions = this.playbackSessionManager.sessions.map((se) => {
-      return {
-        ...se.toJSON(),
-        user: minifiedUserObjects.find((u) => u.id === se.userId) || null
-      }
-    })
-
-    const shareSessions = ShareManager.openSharePlaybackSessions.map((se) => se.toJSON())
+    // Privacy Enhancement: Return empty session list to prevent admin surveillance of active sessions
+    Logger.info(`[SessionController] Privacy mode: Open sessions endpoint disabled for admin surveillance prevention`)
 
     res.json({
-      sessions: openSessions,
-      shareSessions
+      sessions: [],
+      shareSessions: [],
+      privacyNotice: 'Active session monitoring has been disabled for privacy protection.'
     })
   }
 
