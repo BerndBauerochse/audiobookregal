@@ -5,7 +5,8 @@
         <tr>
           <th>{{ $strings.LabelUsername }}</th>
           <th class="w-20">{{ $strings.LabelAccountType }}</th>
-          <th class="hidden lg:table-cell">{{ $strings.LabelActivity }}</th>
+          <!-- Privacy Enhancement: Activity column removed to prevent user surveillance -->
+          <th class="hidden lg:table-cell">{{ $strings.LabelStatus || 'Status' }}</th>
           <th class="w-32 hidden sm:table-cell">{{ $strings.LabelLastSeen }}</th>
           <th class="w-32 hidden sm:table-cell">{{ $strings.LabelCreatedAt }}</th>
           <th class="w-32"></th>
@@ -18,14 +19,13 @@
             </div>
           </td>
           <td class="text-sm">{{ user.type }}</td>
+          <!-- Privacy Enhancement: Show only online/offline status, not what user is doing -->
           <td class="hidden lg:table-cell">
-            <div v-if="usersOnline[user.id]?.session?.displayTitle">
-              <p class="truncate text-xs">Listening: {{ usersOnline[user.id].session.displayTitle || '' }}</p>
-              <p class="truncate text-xs text-gray-300">{{ getDeviceInfoString(usersOnline[user.id].session.deviceInfo) }}</p>
+            <div v-if="usersOnline[user.id]">
+              <p class="truncate text-xs text-green-400">Online</p>
             </div>
-            <div v-else-if="user.latestSession?.displayTitle">
-              <p class="truncate text-xs">Last: {{ user.latestSession.displayTitle || '' }}</p>
-              <p class="truncate text-xs text-gray-300">{{ getDeviceInfoString(user.latestSession.deviceInfo) }}</p>
+            <div v-else>
+              <p class="truncate text-xs text-gray-400">Offline</p>
             </div>
           </td>
           <td class="text-xs font-mono hidden sm:table-cell">
@@ -126,8 +126,9 @@ export default {
       this.$emit('edit', user)
     },
     loadUsers() {
+      // Privacy Enhancement: Don't request latestSession data to prevent activity tracking
       this.$axios
-        .$get('/api/users?include=latestSession')
+        .$get('/api/users')
         .then((res) => {
           this.users = res.users.sort((a, b) => {
             return a.createdAt - b.createdAt

@@ -19,26 +19,15 @@
         <p class="text-warning" v-html="$strings.MessageAuthenticationLegacyTokenWarning" />
       </div>
       <div class="w-full h-px bg-white/10 my-2" />
+      <!-- Privacy Enhancement: Activity tracking hidden to protect user privacy -->
       <div class="py-2">
         <h1 class="text-lg mb-2 text-white/90 px-2 sm:px-0">{{ $strings.HeaderListeningStats }}</h1>
-        <div class="flex items-center">
-          <p class="text-sm text-gray-300">{{ listeningSessions.total }} {{ $strings.HeaderListeningSessions }}</p>
-          <ui-btn :to="`/config/users/${user.id}/sessions`" class="text-xs mx-2" :padding-x="1.5" :padding-y="1">{{ $strings.ButtonViewAll }}</ui-btn>
-        </div>
-        <p class="text-sm text-gray-300">
-          {{ $strings.LabelTotalTimeListened }}:&nbsp;
-          <span class="font-mono text-base">{{ listeningTimePretty }}</span>
-        </p>
-        <p v-if="timeListenedToday" class="text-sm text-gray-300">
-          {{ $strings.LabelTimeListenedToday }}:&nbsp;
-          <span class="font-mono text-base">{{ $elapsedPrettyExtended(timeListenedToday) }}</span>
-        </p>
-
-        <div v-if="latestSession" class="mt-4">
-          <h1 class="text-lg mb-2 text-white/90 px-2 sm:px-0">{{ $strings.HeaderLastListeningSession }}</h1>
-          <p class="text-sm text-gray-300">
-            <strong>{{ latestSession.displayTitle }}</strong> {{ $dateDistanceFromNow(latestSession.updatedAt) }} for <span class="font-mono text-base">{{ $elapsedPrettyExtended(this.latestSession.timeListening) }}</span>
-          </p>
+        <div class="bg-green-500/10 border border-green-500/30 rounded p-3">
+          <div class="flex items-center">
+            <span class="material-symbols text-green-400 mr-2">shield</span>
+            <p class="text-sm text-green-400">Privacy Protection Active</p>
+          </div>
+          <p class="text-xs text-gray-400 mt-2">Detailed listening activity is not tracked on this server to protect user privacy.</p>
         </div>
       </div>
       <div class="w-full h-px bg-white/10 my-2" />
@@ -96,10 +85,7 @@ export default {
     }
   },
   data() {
-    return {
-      listeningSessions: {},
-      listeningStats: {}
-    }
+    return {}
   },
   computed: {
     legacyToken() {
@@ -120,19 +106,6 @@ export default {
     mediaProgress() {
       return this.user.mediaProgress.sort((a, b) => b.lastUpdate - a.lastUpdate)
     },
-    totalListeningTime() {
-      return this.listeningStats.totalTime || 0
-    },
-    listeningTimePretty() {
-      return this.$elapsedPrettyExtended(this.totalListeningTime)
-    },
-    timeListenedToday() {
-      return this.listeningStats.today || 0
-    },
-    latestSession() {
-      if (!this.listeningSessions.sessions || !this.listeningSessions.sessions.length) return null
-      return this.listeningSessions.sessions[0]
-    },
     dateFormat() {
       return this.$store.getters['getServerSetting']('dateFormat')
     },
@@ -141,25 +114,10 @@ export default {
     }
   },
   methods: {
-    async init() {
-      this.listeningSessions = await this.$axios
-        .$get(`/api/users/${this.user.id}/listening-sessions?page=0&itemsPerPage=10`)
-        .then((data) => {
-          return data || {}
-        })
-        .catch((err) => {
-          console.error('Failed to load listening sesions', err)
-          return {}
-        })
-      this.listeningStats = await this.$axios.$get(`/api/users/${this.user.id}/listening-stats`).catch((err) => {
-        console.error('Failed to load listening sesions', err)
-        return []
-      })
-      console.log('Loaded user listening data', this.listeningSessions, this.listeningStats)
-    }
+    // Privacy Enhancement: Listening stats fetching removed
   },
   mounted() {
-    this.init()
+    // Privacy Enhancement: No longer fetching listening activity data
   }
 }
 </script>

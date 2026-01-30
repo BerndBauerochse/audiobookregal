@@ -225,27 +225,20 @@ class Server {
     const app = express()
 
     app.use((req, res, next) => {
-      // Privacy Enhancement: Comprehensive security headers
-      // HSTS: Force HTTPS for all future requests (1 year, includeSubDomains)
-      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
+      // Privacy Enhancement: Security headers (relaxed CSP to not break player)
+      // HSTS: Force HTTPS for all future requests
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
 
-      // Content Security Policy
+      // Relaxed CSP - don't break the audio player
       if (!global.ServerSettings.allowIframe) {
-        // Prevent clickjacking by disallowing iframes
-        res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'")
-      } else {
-        res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors *")
+        res.setHeader('X-Frame-Options', 'SAMEORIGIN')
       }
 
       // Security: Prevent referrer leakage to protect against token exposure
-      // Using 'no-referrer' to completely prevent token leakage in referer headers
       res.setHeader('Referrer-Policy', 'no-referrer')
 
-      // Additional security headers for privacy hardening
+      // Additional security headers
       res.setHeader('X-Content-Type-Options', 'nosniff')
-      res.setHeader('X-XSS-Protection', '1; mode=block')
-      res.setHeader('X-Frame-Options', global.ServerSettings.allowIframe ? 'ALLOWALL' : 'SAMEORIGIN')
-      res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()')
 
       /**
        * @temporary

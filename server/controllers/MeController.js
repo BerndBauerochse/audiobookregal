@@ -475,6 +475,72 @@ class MeController {
   }
 
   /**
+   * DELETE: /api/me/data
+   *
+   * Privacy Enhancement (GDPR Article 17 - Right to Erasure):
+   * Allows users to delete their own stored data (progress, bookmarks, sessions).
+   * Note: This does NOT delete the user account itself, only their activity data.
+   * Guest users can use this to clear their data without admin intervention.
+   *
+   * @this import('../routers/ApiRouter')
+   *
+   * @param {RequestWithUser} req
+   * @param {Response} res
+   */
+  async deleteUserData(req, res) {
+    try {
+      const userId = req.user.id
+      Logger.info(`[MeController] User "${req.user.username}" requested data deletion (GDPR)`)
+
+      // Delete media progress
+      const progressDeleted = await Database.mediaProgressModel.destroy({
+        where: { userId }
+      })
+      Logger.info(`[MeController] Deleted ${progressDeleted} media progress entries for user "${req.user.username}"`)
+
+      // Delete playback sessions
+      const sessionsDeleted = await Database.playbackSessionModel.destroy({
+        where: { userId }
+      })
+      Logger.info(`[MeController] Deleted ${sessionsDeleted} playback sessions for user "${req.user.username}"`)
+
+      // Clear bookmarks from user
+      if (req.user.bookmarks && req.user.bookmarks.length > 0) {
+        req.user.bookmarks = []
+        await req.user.save()
+        Logger.info(`[MeController] Cleared bookmarks for user "${req.user.username}"`)
+      }
+
+      // Clear series hide preferences
+      if (req.user.extraData?.seriesHideFromContinueListening?.length > 0) {
+        req.user.extraData = {
+          ...req.user.extraData,
+          seriesHideFromContinueListening: []
+        }
+        await req.user.save()
+      }
+
+      // Reload user data
+      req.user.mediaProgresses = []
+
+      SocketAuthority.clientEmitter(req.user.id, 'user_updated', req.user.toOldJSONForBrowser())
+
+      res.json({
+        success: true,
+        message: 'Your data has been deleted successfully',
+        deleted: {
+          mediaProgress: progressDeleted,
+          playbackSessions: sessionsDeleted,
+          bookmarks: true
+        }
+      })
+    } catch (error) {
+      Logger.error(`[MeController] Failed to delete user data for "${req.user.username}":`, error)
+      res.status(500).send('Failed to delete user data')
+    }
+  }
+
+  /**
    * GET: /api/me/data-export
    *
    * Privacy Enhancement (GDPR Article 20 - Right to Data Portability):

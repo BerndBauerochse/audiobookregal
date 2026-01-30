@@ -190,6 +190,8 @@ class ApiRouter {
     this.router.post('/me/ereader-devices', MeController.updateUserEReaderDevices.bind(this))
     // Privacy Enhancement (GDPR): User data export endpoint
     this.router.get('/me/data-export', MeController.exportUserData.bind(this))
+    // Privacy Enhancement (GDPR): User data deletion endpoint
+    this.router.delete('/me/data', MeController.deleteUserData.bind(this))
 
     //
     // Backup Routes
