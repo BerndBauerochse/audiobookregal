@@ -453,10 +453,24 @@ module.exports = {
 
     const matchJsonValue = textSearchQuery.matchExpression('json_each.value')
 
-    // Privacy Enhancement: Tag search disabled to protect user privacy
-    // Tags are not exposed in search results
+    // Privacy Enhancement: Tag search only enabled for admins
     const tagMatches = []
-    // Original tag search query removed for privacy
+    if (user.isAdminOrUp) {
+      const [tagResults] = await Database.sequelize.query(`SELECT value, count(*) AS numItems FROM podcasts p, libraryItems li, json_each(p.tags) WHERE json_valid(p.tags) AND ${matchJsonValue} AND p.id = li.mediaId AND li.libraryId = :libraryId GROUP BY value ORDER BY numItems DESC LIMIT :limit OFFSET :offset;`, {
+        replacements: {
+          libraryId: library.id,
+          limit,
+          offset
+        },
+        raw: true
+      })
+      for (const row of tagResults) {
+        tagMatches.push({
+          name: row.value,
+          numItems: row.numItems
+        })
+      }
+    }
 
     // Search genres
     const genreMatches = []

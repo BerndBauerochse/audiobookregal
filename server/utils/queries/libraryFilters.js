@@ -27,8 +27,8 @@ module.exports = {
     let filterValue = null
     let filterGroup = null
     if (filterBy) {
-      // Privacy Enhancement: 'tags' removed from searchGroups to hide tags from search/filter
-      const searchGroups = ['genres', 'series', 'authors', 'progress', 'narrators', 'publishers', 'publishedDecades', 'missing', 'languages', 'tracks', 'ebooks']
+      // Tags included in searchGroups for admin filtering (non-admins won't see tags in UI anyway)
+      const searchGroups = ['genres', 'tags', 'series', 'authors', 'progress', 'narrators', 'publishers', 'publishedDecades', 'missing', 'languages', 'tracks', 'ebooks']
       const group = searchGroups.find((_group) => filterBy.startsWith(_group + '.'))
       filterGroup = group || filterBy
       filterValue = group ? this.decode(filterBy.replace(`${group}.`, '')) : null
@@ -440,15 +440,20 @@ module.exports = {
    * Get filter data used in filter menus
    * @param {string} mediaType
    * @param {string} libraryId
+   * @param {import('../../models/User')} [user] - Optional user for permission checks
    * @returns {Promise<object>}
    */
-  async getFilterData(mediaType, libraryId) {
+  async getFilterData(mediaType, libraryId, user = null) {
     const cachedFilterData = Database.libraryFilterData[libraryId]
     if (cachedFilterData) {
       const cacheElapsed = Date.now() - cachedFilterData.loadedAt
       // Cache library filters for 30 mins
       // TODO: Keep cached filter data up-to-date on updates
       if (cacheElapsed < 1000 * 60 * 30) {
+        // Privacy Enhancement: Only return tags for admin users
+        if (!user || !user.isAdminOrUp) {
+          return { ...cachedFilterData, tags: [] }
+        }
         return cachedFilterData
       }
     }
@@ -457,8 +462,8 @@ module.exports = {
     const data = {
       authors: [],
       genres: new Set(),
-      // Privacy Enhancement: Tags hidden from filter data
-      tags: [],
+      // Privacy Enhancement: Tags collected but only returned for admins
+      tags: new Set(),
       series: [],
       narrators: new Set(),
       languages: new Set(),
@@ -536,10 +541,10 @@ module.exports = {
         attributes: ['tags', 'genres', 'language']
       })
       for (const podcast of podcasts) {
-        // Privacy Enhancement: Tags are not collected for privacy reasons
-        // if (podcast.tags?.length) {
-        //   podcast.tags.forEach((tag) => data.tags.add(tag))
-        // }
+        // Tags collected for admin access
+        if (podcast.tags?.length) {
+          podcast.tags.forEach((tag) => data.tags.add(tag))
+        }
         if (podcast.genres?.length) {
           podcast.genres.forEach((genre) => data.genres.add(genre))
         }
@@ -646,10 +651,10 @@ module.exports = {
       })
       for (const book of books) {
         if (book.libraryItem.isMissing || book.libraryItem.isInvalid) data.numIssues++
-        // Privacy Enhancement: Tags are not collected for privacy reasons
-        // if (book.tags?.length) {
-        //   book.tags.forEach((tag) => data.tags.add(tag))
-        // }
+        // Tags collected for admin access
+        if (book.tags?.length) {
+          book.tags.forEach((tag) => data.tags.add(tag))
+        }
         if (book.genres?.length) {
           book.genres.forEach((genre) => data.genres.add(genre))
         }
@@ -684,8 +689,7 @@ module.exports = {
 
     data.authors = naturalSort(data.authors).asc((au) => au.name)
     data.genres = naturalSort([...data.genres]).asc()
-    // Privacy Enhancement: Tags always empty
-    data.tags = []
+    data.tags = naturalSort([...data.tags]).asc()
     data.series = naturalSort(data.series).asc((se) => se.name)
     data.narrators = naturalSort([...data.narrators]).asc()
     data.publishers = naturalSort([...data.publishers]).asc()
@@ -695,6 +699,11 @@ module.exports = {
     Database.libraryFilterData[libraryId] = data
 
     Logger.debug(`Loaded filterdata in ${((Date.now() - start) / 1000).toFixed(2)}s`)
+
+    // Privacy Enhancement: Only return tags for admin users
+    if (!user || !user.isAdminOrUp) {
+      return { ...data, tags: [] }
+    }
     return data
   }
 }
