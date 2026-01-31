@@ -69,6 +69,28 @@
         </app-settings-content>
       </div>
 
+      <!-- Privacy Section: GDPR Data Management -->
+      <div class="w-full h-px bg-white/10 my-4" />
+
+      <div class="my-4">
+        <p class="text-lg font-semibold mb-2">{{ $strings.HeaderPrivacy || 'Privacy & Data' }}</p>
+        <p class="text-sm text-gray-400 mb-4">{{ $strings.LabelPrivacyDescription || 'Manage your personal data according to GDPR regulations.' }}</p>
+
+        <div class="flex flex-wrap gap-3">
+          <ui-btn color="bg-primary flex items-center" :loading="exportingData" @click="exportMyData">
+            <span class="material-symbols mr-2 icon-text">download</span>
+            {{ $strings.ButtonExportData || 'Export My Data' }}
+          </ui-btn>
+
+          <ui-btn color="bg-error flex items-center" :loading="deletingData" @click="deleteMyDataClick">
+            <span class="material-symbols mr-2 icon-text">delete_forever</span>
+            {{ $strings.ButtonDeleteData || 'Delete My Data' }}
+          </ui-btn>
+        </div>
+
+        <p class="text-xs text-gray-500 mt-2">{{ $strings.LabelPrivacyNote || 'Data export includes your listening progress, bookmarks, and settings. Data deletion will remove all your activity data.' }}</p>
+      </div>
+
       <div class="py-4 mt-8 flex">
         <ui-btn color="bg-primary flex items-center text-lg" @click="logout"><span class="material-symbols mr-4 icon-text">logout</span>{{ $strings.ButtonLogout }}</ui-btn>
       </div>
@@ -95,7 +117,9 @@ export default {
       ereaderDevices: [],
       deletingDeviceName: null,
       selectedEReaderDevice: null,
-      showEReaderDeviceModal: false
+      showEReaderDeviceModal: false,
+      exportingData: false,
+      deletingData: false
     }
   },
   computed: {
@@ -238,6 +262,53 @@ export default {
     },
     ereaderDevicesUpdated(ereaderDevices) {
       this.ereaderDevices = ereaderDevices
+    },
+    async exportMyData() {
+      this.exportingData = true
+      try {
+        const response = await this.$axios.$get('/api/me/export-data')
+        // Create and download JSON file
+        const dataStr = JSON.stringify(response, null, 2)
+        const blob = new Blob([dataStr], { type: 'application/json' })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `my-data-export-${new Date().toISOString().split('T')[0]}.json`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+        this.$toast.success(this.$strings.ToastDataExportSuccess || 'Data exported successfully')
+      } catch (error) {
+        console.error('Failed to export data', error)
+        this.$toast.error(this.$strings.ToastDataExportFailed || 'Failed to export data')
+      } finally {
+        this.exportingData = false
+      }
+    },
+    deleteMyDataClick() {
+      const payload = {
+        message: this.$strings.MessageConfirmDeleteData || 'Are you sure you want to delete all your personal data? This includes your listening progress, bookmarks, and activity history. This action cannot be undone.',
+        callback: (confirmed) => {
+          if (confirmed) {
+            this.deleteMyData()
+          }
+        },
+        type: 'yesNo'
+      }
+      this.$store.commit('globals/setConfirmPrompt', payload)
+    },
+    async deleteMyData() {
+      this.deletingData = true
+      try {
+        await this.$axios.$delete('/api/me/delete-data')
+        this.$toast.success(this.$strings.ToastDataDeleteSuccess || 'Your data has been deleted successfully')
+      } catch (error) {
+        console.error('Failed to delete data', error)
+        this.$toast.error(this.$strings.ToastDataDeleteFailed || 'Failed to delete data')
+      } finally {
+        this.deletingData = false
+      }
     }
   },
   mounted() {
