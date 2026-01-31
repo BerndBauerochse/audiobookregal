@@ -266,7 +266,7 @@ export default {
     async exportMyData() {
       this.exportingData = true
       try {
-        const response = await this.$axios.$get('/api/me/export-data')
+        const response = await this.$axios.$get('/api/me/data-export')
         // Create and download JSON file
         const dataStr = JSON.stringify(response, null, 2)
         const blob = new Blob([dataStr], { type: 'application/json' })
@@ -301,7 +301,7 @@ export default {
     async deleteMyData() {
       this.deletingData = true
       try {
-        await this.$axios.$delete('/api/me/delete-data')
+        await this.$axios.$delete('/api/me/data')
         this.$toast.success(this.$strings.ToastDataDeleteSuccess || 'Your data has been deleted successfully')
       } catch (error) {
         console.error('Failed to delete data', error)
