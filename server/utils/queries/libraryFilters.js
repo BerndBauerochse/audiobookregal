@@ -27,7 +27,8 @@ module.exports = {
     let filterValue = null
     let filterGroup = null
     if (filterBy) {
-      const searchGroups = ['genres', 'tags', 'series', 'authors', 'progress', 'narrators', 'publishers', 'publishedDecades', 'missing', 'languages', 'tracks', 'ebooks']
+      // Privacy Enhancement: 'tags' removed from searchGroups to hide tags from search/filter
+      const searchGroups = ['genres', 'series', 'authors', 'progress', 'narrators', 'publishers', 'publishedDecades', 'missing', 'languages', 'tracks', 'ebooks']
       const group = searchGroups.find((_group) => filterBy.startsWith(_group + '.'))
       filterGroup = group || filterBy
       filterValue = group ? this.decode(filterBy.replace(`${group}.`, '')) : null
@@ -456,7 +457,8 @@ module.exports = {
     const data = {
       authors: [],
       genres: new Set(),
-      tags: new Set(),
+      // Privacy Enhancement: Tags hidden from filter data
+      tags: [],
       series: [],
       narrators: new Set(),
       languages: new Set(),
@@ -534,9 +536,10 @@ module.exports = {
         attributes: ['tags', 'genres', 'language']
       })
       for (const podcast of podcasts) {
-        if (podcast.tags?.length) {
-          podcast.tags.forEach((tag) => data.tags.add(tag))
-        }
+        // Privacy Enhancement: Tags are not collected for privacy reasons
+        // if (podcast.tags?.length) {
+        //   podcast.tags.forEach((tag) => data.tags.add(tag))
+        // }
         if (podcast.genres?.length) {
           podcast.genres.forEach((genre) => data.genres.add(genre))
         }
@@ -643,9 +646,10 @@ module.exports = {
       })
       for (const book of books) {
         if (book.libraryItem.isMissing || book.libraryItem.isInvalid) data.numIssues++
-        if (book.tags?.length) {
-          book.tags.forEach((tag) => data.tags.add(tag))
-        }
+        // Privacy Enhancement: Tags are not collected for privacy reasons
+        // if (book.tags?.length) {
+        //   book.tags.forEach((tag) => data.tags.add(tag))
+        // }
         if (book.genres?.length) {
           book.genres.forEach((genre) => data.genres.add(genre))
         }
@@ -680,7 +684,8 @@ module.exports = {
 
     data.authors = naturalSort(data.authors).asc((au) => au.name)
     data.genres = naturalSort([...data.genres]).asc()
-    data.tags = naturalSort([...data.tags]).asc()
+    // Privacy Enhancement: Tags always empty
+    data.tags = []
     data.series = naturalSort(data.series).asc((se) => se.name)
     data.narrators = naturalSort([...data.narrators]).asc()
     data.publishers = naturalSort([...data.publishers]).asc()
