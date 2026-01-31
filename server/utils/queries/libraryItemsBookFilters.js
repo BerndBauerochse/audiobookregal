@@ -1145,22 +1145,11 @@ module.exports = {
       })
     }
 
-    // Search tags
+    // Privacy Enhancement: Tag search disabled to protect user privacy
+    // Tags are not exposed in search results
     const tagMatches = []
-    const [tagResults] = await Database.sequelize.query(`SELECT value, count(*) AS numItems FROM books b, libraryItems li, json_each(b.tags) WHERE json_valid(b.tags) AND ${matchJsonValue} AND b.id = li.mediaId AND li.libraryId = :libraryId GROUP BY value ORDER BY numItems DESC LIMIT :limit OFFSET :offset;`, {
-      replacements: {
-        libraryId: library.id,
-        limit,
-        offset
-      },
-      raw: true
-    })
-    for (const row of tagResults) {
-      tagMatches.push({
-        name: row.value,
-        numItems: row.numItems
-      })
-    }
+    // Original tag search query removed for privacy:
+    // const [tagResults] = await Database.sequelize.query(...)
 
     // Search genres
     const genreMatches = []

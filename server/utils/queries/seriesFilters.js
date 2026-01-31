@@ -25,7 +25,8 @@ module.exports = {
     let filterValue = null
     let filterGroup = null
     if (filterBy) {
-      const searchGroups = ['genres', 'tags', 'authors', 'progress', 'narrators', 'publishers', 'languages']
+      // Privacy Enhancement: 'tags' removed from searchGroups to hide tags from search/filter
+      const searchGroups = ['genres', 'authors', 'progress', 'narrators', 'publishers', 'languages']
       const group = searchGroups.find((_group) => filterBy.startsWith(_group + '.'))
       filterGroup = group || filterBy
       filterValue = group ? this.decode(filterBy.replace(`${group}.`, '')) : null
