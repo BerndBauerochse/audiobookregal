@@ -436,8 +436,7 @@ class Podcast extends Model {
       libraryItemId: libraryItemId,
       metadata: this.oldMetadataToJSON(),
       coverPath: this.coverPath,
-      // Privacy Enhancement: Tags hidden from API responses
-      tags: [],
+      tags: this.tags || [],
       episodes: this.podcastEpisodes.map((episode) => episode.toOldJSON(libraryItemId)),
       autoDownloadEpisodes: this.autoDownloadEpisodes,
       autoDownloadSchedule: this.autoDownloadSchedule,
@@ -453,8 +452,7 @@ class Podcast extends Model {
       // Minified metadata and expanded metadata are the same
       metadata: this.oldMetadataToJSONExpanded(),
       coverPath: this.coverPath,
-      // Privacy Enhancement: Tags hidden from API responses
-      tags: [],
+      tags: this.tags || [],
       numEpisodes: this.podcastEpisodes?.length || 0,
       autoDownloadEpisodes: this.autoDownloadEpisodes,
       autoDownloadSchedule: this.autoDownloadSchedule,
@@ -478,8 +476,7 @@ class Podcast extends Model {
       libraryItemId: libraryItemId,
       metadata: this.oldMetadataToJSONExpanded(),
       coverPath: this.coverPath,
-      // Privacy Enhancement: Tags hidden from API responses
-      tags: [],
+      tags: this.tags || [],
       episodes: this.podcastEpisodes.map((e) => e.toOldJSONExpanded(libraryItemId)),
       autoDownloadEpisodes: this.autoDownloadEpisodes,
       autoDownloadSchedule: this.autoDownloadSchedule,

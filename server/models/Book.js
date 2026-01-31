@@ -629,9 +629,7 @@ class Book extends Model {
       libraryItemId: libraryItemId,
       metadata: this.oldMetadataToJSON(),
       coverPath: this.coverPath,
-      // Privacy Enhancement: Tags are hidden from API responses to protect user organization data
-      // Tags remain stored in the database for server-side filtering but are not exposed to clients
-      tags: [],
+      tags: this.tags || [],
       audioFiles: structuredClone(this.audioFiles),
       chapters: structuredClone(this.chapters),
       ebookFile: structuredClone(this.ebookFile)
@@ -650,8 +648,7 @@ class Book extends Model {
       id: this.id,
       metadata: this.oldMetadataToJSONMinified(),
       coverPath: this.coverPath,
-      // Privacy Enhancement: Tags hidden from API responses
-      tags: [],
+      tags: this.tags || [],
       numTracks: this.includedAudioFiles.length,
       numAudioFiles: this.audioFiles?.length || 0,
       numChapters: this.chapters?.length || 0,
@@ -677,8 +674,7 @@ class Book extends Model {
       libraryItemId: libraryItemId,
       metadata: this.oldMetadataToJSONExpanded(),
       coverPath: this.coverPath,
-      // Privacy Enhancement: Tags hidden from API responses
-      tags: [],
+      tags: this.tags || [],
       audioFiles: structuredClone(this.audioFiles),
       chapters: structuredClone(this.chapters),
       ebookFile: structuredClone(this.ebookFile),

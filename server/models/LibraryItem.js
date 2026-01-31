@@ -574,8 +574,7 @@ class LibraryItem extends Model {
     let jsonObject = {}
     if (this.mediaType === 'book') {
       jsonObject = {
-        // Privacy Enhancement: Tags hidden from API responses
-        tags: [],
+        tags: mediaExpanded.tags || [],
         chapters: mediaExpanded.chapters?.map((c) => ({ ...c })) || [],
         title: mediaExpanded.title,
         subtitle: mediaExpanded.subtitle,
@@ -599,8 +598,7 @@ class LibraryItem extends Model {
       }
     } else {
       jsonObject = {
-        // Privacy Enhancement: Tags hidden from API responses
-        tags: [],
+        tags: mediaExpanded.tags || [],
         title: mediaExpanded.title,
         author: mediaExpanded.author,
         description: mediaExpanded.description,
