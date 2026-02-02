@@ -301,8 +301,9 @@ export default {
     async deleteMyData() {
       this.deletingData = true
       try {
-        await this.$axios.$delete('/api/me/data')
-        this.$toast.success(this.$strings.ToastDataDeleteSuccess || 'Your data has been deleted successfully')
+        const response = await this.$axios.$delete('/api/me/data')
+        const deletedCount = (response?.deleted?.mediaProgress || 0) + (response?.deleted?.playbackSessions || 0)
+        this.$toast.success(`Deleted: ${response?.deleted?.mediaProgress || 0} progress entries, ${response?.deleted?.playbackSessions || 0} sessions`)
       } catch (error) {
         console.error('Failed to delete data', error)
         this.$toast.error(this.$strings.ToastDataDeleteFailed || 'Failed to delete data')
