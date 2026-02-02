@@ -75,19 +75,14 @@
     <!-- Privacy Enhancement: Legal footer links (GDPR compliance) -->
     <div class="absolute bottom-0 left-0 right-0 p-4 text-center">
       <div class="flex justify-center items-center space-x-4 text-sm text-white/50">
-        <a v-if="privacyPolicyUrl" :href="privacyPolicyUrl" target="_blank" class="hover:text-white hover:underline">
-          {{ $strings.LabelPrivacyPolicy || 'Privacy Policy' }}
+        <a href="/datenschutz" class="hover:text-white hover:underline">
+          Datenschutz
         </a>
-        <span v-if="privacyPolicyUrl && imprintUrl" class="text-white/30">|</span>
-        <a v-if="imprintUrl" :href="imprintUrl" target="_blank" class="hover:text-white hover:underline">
-          {{ $strings.LabelImprint || 'Imprint' }}
+        <span class="text-white/30">|</span>
+        <a href="https://www.der-audio-verlag.de/impressum/" target="_blank" class="hover:text-white hover:underline">
+          Impressum
         </a>
-        <span v-if="(privacyPolicyUrl || imprintUrl) && dataExportEnabled" class="text-white/30">|</span>
-        <span v-if="dataExportEnabled" class="text-white/40 text-xs">
-          {{ $strings.LabelGDPRCompliant || 'GDPR Compliant' }}
-        </span>
       </div>
-      <p class="text-xs text-white/30 mt-2">Privacy-enhanced AudiobookRegal Server</p>
     </div>
   </div>
 </template>
