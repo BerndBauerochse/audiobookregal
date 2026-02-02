@@ -73,13 +73,13 @@
     </div>
 
     <!-- Privacy Enhancement: Legal footer links (GDPR compliance) -->
-    <div class="absolute bottom-0 left-0 right-0 p-4 text-center">
-      <div class="flex justify-center items-center space-x-4 text-sm text-white/50">
-        <a href="/datenschutz" class="hover:text-white hover:underline">
+    <div class="absolute bottom-0 left-0 right-0 p-4 text-center z-50">
+      <div class="flex justify-center items-center space-x-4 text-sm">
+        <a href="/datenschutz" class="text-gray-300 hover:text-white underline cursor-pointer">
           Datenschutz
         </a>
-        <span class="text-white/30">|</span>
-        <a href="https://www.der-audio-verlag.de/impressum/" target="_blank" class="hover:text-white hover:underline">
+        <span class="text-gray-500">|</span>
+        <a href="https://www.der-audio-verlag.de/impressum/" target="_blank" class="text-gray-300 hover:text-white underline cursor-pointer">
           Impressum
         </a>
       </div>
