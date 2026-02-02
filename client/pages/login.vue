@@ -161,8 +161,8 @@ export default {
     },
     // Privacy Enhancement: Legal links for GDPR compliance
     privacyPolicyUrl() {
-      // DAV Datenschutzerklärung - Update this URL when available
-      return this.authFormData?.privacyPolicyUrl || process.env.PRIVACY_POLICY_URL || 'https://www.der-audio-verlag.de/datenschutz/'
+      // DAV Datenschutzerklärung - served locally at /datenschutz
+      return this.authFormData?.privacyPolicyUrl || process.env.PRIVACY_POLICY_URL || '/datenschutz'
     },
     imprintUrl() {
       // DAV Impressum

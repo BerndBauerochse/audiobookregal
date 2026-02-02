@@ -328,6 +328,11 @@ class Server {
     // Static folder
     router.use(express.static(Path.join(global.appRoot, 'static')))
 
+    // Privacy Enhancement: Datenschutz (Privacy Policy) page
+    router.get('/datenschutz', (req, res) => {
+      res.sendFile(Path.join(global.appRoot, 'static', 'datenschutz.html'))
+    })
+
     // RSS Feed temp route
     router.get('/feed/:slug', (req, res) => {
       Logger.info(`[Server] Requesting rss feed ${req.params.slug}`)
