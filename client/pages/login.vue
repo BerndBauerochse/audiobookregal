@@ -161,14 +161,12 @@ export default {
     },
     // Privacy Enhancement: Legal links for GDPR compliance
     privacyPolicyUrl() {
-      // Can be configured via server settings or environment variable
-      // Default: null (not shown if not configured)
-      return this.authFormData?.privacyPolicyUrl || process.env.PRIVACY_POLICY_URL || null
+      // DAV Datenschutzerklärung - Update this URL when available
+      return this.authFormData?.privacyPolicyUrl || process.env.PRIVACY_POLICY_URL || 'https://www.der-audio-verlag.de/datenschutz/'
     },
     imprintUrl() {
-      // Can be configured via server settings or environment variable
-      // Default: null (not shown if not configured)
-      return this.authFormData?.imprintUrl || process.env.IMPRINT_URL || null
+      // DAV Impressum
+      return this.authFormData?.imprintUrl || process.env.IMPRINT_URL || 'https://www.der-audio-verlag.de/impressum/'
     },
     dataExportEnabled() {
       // Always true for this privacy-enhanced fork
