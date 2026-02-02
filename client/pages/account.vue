@@ -267,13 +267,49 @@ export default {
       this.exportingData = true
       try {
         const response = await this.$axios.$get('/api/me/data-export')
-        // Create and download JSON file
-        const dataStr = JSON.stringify(response, null, 2)
-        const blob = new Blob([dataStr], { type: 'application/json' })
+        // Create readable TXT file
+        let txtContent = '=== MY DATA EXPORT ===\n'
+        txtContent += `Export Date: ${response.exportDate}\n\n`
+
+        txtContent += '--- PROFILE ---\n'
+        txtContent += `Username: ${response.profile?.username}\n`
+        txtContent += `Account Type: ${response.profile?.type}\n`
+        txtContent += `Created: ${response.profile?.createdAt}\n\n`
+
+        txtContent += '--- MEDIA PROGRESS ---\n'
+        if (response.mediaProgress?.length) {
+          response.mediaProgress.forEach((mp, i) => {
+            txtContent += `${i + 1}. Progress: ${Math.round(mp.progress * 100)}%, Time: ${Math.round(mp.currentTime)}s, Finished: ${mp.isFinished ? 'Yes' : 'No'}\n`
+          })
+        } else {
+          txtContent += 'No progress data\n'
+        }
+        txtContent += '\n'
+
+        txtContent += '--- BOOKMARKS ---\n'
+        if (response.bookmarks?.length) {
+          response.bookmarks.forEach((bm, i) => {
+            txtContent += `${i + 1}. "${bm.title}" at ${Math.round(bm.time)}s\n`
+          })
+        } else {
+          txtContent += 'No bookmarks\n'
+        }
+        txtContent += '\n'
+
+        txtContent += '--- LISTENING HISTORY ---\n'
+        if (response.listeningHistory?.length) {
+          response.listeningHistory.forEach((lh, i) => {
+            txtContent += `${i + 1}. "${lh.displayTitle}" - ${Math.round(lh.timeListening / 60)} min listened\n`
+          })
+        } else {
+          txtContent += 'No listening history\n'
+        }
+
+        const blob = new Blob([txtContent], { type: 'text/plain' })
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `my-data-export-${new Date().toISOString().split('T')[0]}.json`
+        a.download = `my-data-export-${new Date().toISOString().split('T')[0]}.txt`
         document.body.appendChild(a)
         a.click()
         window.URL.revokeObjectURL(url)
@@ -287,16 +323,10 @@ export default {
       }
     },
     deleteMyDataClick() {
-      const payload = {
-        message: this.$strings.MessageConfirmDeleteData || 'Are you sure you want to delete all your personal data? This includes your listening progress, bookmarks, and activity history. This action cannot be undone.',
-        callback: (confirmed) => {
-          if (confirmed) {
-            this.deleteMyData()
-          }
-        },
-        type: 'yesNo'
+      // Use native confirm dialog for reliability
+      if (confirm('Are you sure you want to delete all your personal data?\n\nThis includes:\n- Listening progress\n- Bookmarks\n- Activity history\n\nThis action cannot be undone!')) {
+        this.deleteMyData()
       }
-      this.$store.commit('globals/setConfirmPrompt', payload)
     },
     async deleteMyData() {
       this.deletingData = true
