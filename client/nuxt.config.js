@@ -82,14 +82,14 @@ module.exports = {
     icon: false,
     meta: {
       appleStatusBarStyle: 'black',
-      name: 'Audiobookshelf',
+      name: 'Audiohub',
       theme_color: '#232323',
       mobileAppIOS: true,
       nativeUI: true
     },
     manifest: {
-      name: 'Audiobookshelf',
-      short_name: 'Audiobookshelf',
+      name: 'Audiohub',
+      short_name: 'Audiohub',
       display: 'standalone',
       background_color: '#232323',
       icons: [

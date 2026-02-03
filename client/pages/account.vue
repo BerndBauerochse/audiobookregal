@@ -73,22 +73,22 @@
       <div class="w-full h-px bg-white/10 my-4" />
 
       <div class="my-4">
-        <p class="text-lg font-semibold mb-2">{{ $strings.HeaderPrivacy || 'Privacy & Data' }}</p>
-        <p class="text-sm text-gray-400 mb-4">{{ $strings.LabelPrivacyDescription || 'Manage your personal data according to GDPR regulations.' }}</p>
+        <p class="text-lg font-semibold mb-2">{{ $strings.HeaderPrivacy || 'Datenschutz & Daten' }}</p>
+        <p class="text-sm text-gray-400 mb-4">{{ $strings.LabelPrivacyDescription || 'Verwalten Sie Ihre persönlichen Daten gemäß DSGVO.' }}</p>
 
         <div class="flex flex-wrap gap-3">
           <ui-btn color="bg-primary flex items-center" :loading="exportingData" @click="exportMyData">
             <span class="material-symbols mr-2 icon-text">download</span>
-            {{ $strings.ButtonExportData || 'Export My Data' }}
+            {{ $strings.ButtonExportData || 'Meine Daten exportieren' }}
           </ui-btn>
 
           <ui-btn color="bg-error flex items-center" :loading="deletingData" @click="deleteMyDataClick">
             <span class="material-symbols mr-2 icon-text">delete_forever</span>
-            {{ $strings.ButtonDeleteData || 'Delete My Data' }}
+            {{ $strings.ButtonDeleteData || 'Meine Daten löschen' }}
           </ui-btn>
         </div>
 
-        <p class="text-xs text-gray-500 mt-2">{{ $strings.LabelPrivacyNote || 'Data export includes your listening progress, bookmarks, and settings. Data deletion will remove all your activity data.' }}</p>
+        <p class="text-xs text-gray-500 mt-2">{{ $strings.LabelPrivacyNote || 'Der Datenexport enthält Ihren Hörfortschritt, Lesezeichen und Einstellungen. Die Datenlöschung entfernt alle Ihre Aktivitätsdaten.' }}</p>
       </div>
 
       <div class="py-4 mt-8 flex">
@@ -267,64 +267,64 @@ export default {
       this.exportingData = true
       try {
         const response = await this.$axios.$get('/api/me/data-export')
-        // Create readable TXT file
-        let txtContent = '=== MY DATA EXPORT ===\n'
-        txtContent += `Export Date: ${response.exportDate}\n\n`
+        // Create readable TXT file in German
+        let txtContent = '=== MEIN DATENEXPORT ===\n'
+        txtContent += `Exportdatum: ${response.exportDate}\n\n`
 
-        txtContent += '--- PROFILE ---\n'
-        txtContent += `Username: ${response.profile?.username}\n`
-        txtContent += `Account Type: ${response.profile?.type}\n`
-        txtContent += `Created: ${response.profile?.createdAt}\n\n`
+        txtContent += '--- PROFIL ---\n'
+        txtContent += `Benutzername: ${response.profile?.username}\n`
+        txtContent += `Kontotyp: ${response.profile?.type}\n`
+        txtContent += `Erstellt: ${response.profile?.createdAt}\n\n`
 
-        txtContent += '--- MEDIA PROGRESS ---\n'
+        txtContent += '--- HÖRFORTSCHRITT ---\n'
         if (response.mediaProgress?.length) {
           response.mediaProgress.forEach((mp, i) => {
-            txtContent += `${i + 1}. Progress: ${Math.round(mp.progress * 100)}%, Time: ${Math.round(mp.currentTime)}s, Finished: ${mp.isFinished ? 'Yes' : 'No'}\n`
+            txtContent += `${i + 1}. Fortschritt: ${Math.round(mp.progress * 100)}%, Zeit: ${Math.round(mp.currentTime)}s, Beendet: ${mp.isFinished ? 'Ja' : 'Nein'}\n`
           })
         } else {
-          txtContent += 'No progress data\n'
+          txtContent += 'Keine Fortschrittsdaten\n'
         }
         txtContent += '\n'
 
-        txtContent += '--- BOOKMARKS ---\n'
+        txtContent += '--- LESEZEICHEN ---\n'
         if (response.bookmarks?.length) {
           response.bookmarks.forEach((bm, i) => {
-            txtContent += `${i + 1}. "${bm.title}" at ${Math.round(bm.time)}s\n`
+            txtContent += `${i + 1}. "${bm.title}" bei ${Math.round(bm.time)}s\n`
           })
         } else {
-          txtContent += 'No bookmarks\n'
+          txtContent += 'Keine Lesezeichen\n'
         }
         txtContent += '\n'
 
-        txtContent += '--- LISTENING HISTORY ---\n'
+        txtContent += '--- HÖRVERLAUF ---\n'
         if (response.listeningHistory?.length) {
           response.listeningHistory.forEach((lh, i) => {
-            txtContent += `${i + 1}. "${lh.displayTitle}" - ${Math.round(lh.timeListening / 60)} min listened\n`
+            txtContent += `${i + 1}. "${lh.displayTitle}" - ${Math.round(lh.timeListening / 60)} Min. gehört\n`
           })
         } else {
-          txtContent += 'No listening history\n'
+          txtContent += 'Kein Hörverlauf\n'
         }
 
         const blob = new Blob([txtContent], { type: 'text/plain' })
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `my-data-export-${new Date().toISOString().split('T')[0]}.txt`
+        a.download = `mein-datenexport-${new Date().toISOString().split('T')[0]}.txt`
         document.body.appendChild(a)
         a.click()
         window.URL.revokeObjectURL(url)
         document.body.removeChild(a)
-        this.$toast.success(this.$strings.ToastDataExportSuccess || 'Data exported successfully')
+        this.$toast.success(this.$strings.ToastDataExportSuccess || 'Daten erfolgreich exportiert')
       } catch (error) {
         console.error('Failed to export data', error)
-        this.$toast.error(this.$strings.ToastDataExportFailed || 'Failed to export data')
+        this.$toast.error(this.$strings.ToastDataExportFailed || 'Datenexport fehlgeschlagen')
       } finally {
         this.exportingData = false
       }
     },
     deleteMyDataClick() {
       // Use native confirm dialog for reliability
-      if (confirm('Are you sure you want to delete all your personal data?\n\nThis includes:\n- Listening progress\n- Bookmarks\n- Activity history\n\nThis action cannot be undone!')) {
+      if (confirm('Sind Sie sicher, dass Sie alle Ihre persönlichen Daten löschen möchten?\n\nDies umfasst:\n- Hörfortschritt\n- Lesezeichen\n- Aktivitätsverlauf\n\nDiese Aktion kann nicht rückgängig gemacht werden!')) {
         this.deleteMyData()
       }
     },
@@ -333,10 +333,10 @@ export default {
       try {
         const response = await this.$axios.$delete('/api/me/data')
         const deletedCount = (response?.deleted?.mediaProgress || 0) + (response?.deleted?.playbackSessions || 0)
-        this.$toast.success(`Deleted: ${response?.deleted?.mediaProgress || 0} progress entries, ${response?.deleted?.playbackSessions || 0} sessions`)
+        this.$toast.success(`Gelöscht: ${response?.deleted?.mediaProgress || 0} Fortschrittseinträge, ${response?.deleted?.playbackSessions || 0} Sitzungen`)
       } catch (error) {
         console.error('Failed to delete data', error)
-        this.$toast.error(this.$strings.ToastDataDeleteFailed || 'Failed to delete data')
+        this.$toast.error(this.$strings.ToastDataDeleteFailed || 'Datenlöschung fehlgeschlagen')
       } finally {
         this.deletingData = false
       }
