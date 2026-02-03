@@ -3,7 +3,7 @@
     <div class="absolute z-0 top-0 left-0 px-6 py-3">
       <div class="flex items-center">
         <img src="~static/icon.svg" alt="Privacy Audiobook Server Logo" class="w-10 min-w-10 h-10" />
-        <h1 class="text-xl ml-4 hidden lg:block hover:underline">AudiobookRegal</h1>
+        <h1 class="text-xl ml-4 hidden lg:block hover:underline">Audiohub</h1>
         <span class="ml-2 text-xs px-2 py-0.5 bg-green-600/30 text-green-400 rounded hidden lg:inline-block">Privacy Mode</span>
       </div>
     </div>
