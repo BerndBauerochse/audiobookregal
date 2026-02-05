@@ -50,8 +50,9 @@ class LibraryItemController {
    */
   async findOne(req, res) {
     const includeEntities = (req.query.include || '').split(',')
+    const hideTags = !req.user.isAdminOrUp
     if (req.query.expanded == 1) {
-      const item = req.libraryItem.toOldJSONExpanded()
+      const item = req.libraryItem.toOldJSONExpanded(hideTags)
 
       // Include users media progress
       if (includeEntities.includes('progress')) {
@@ -78,7 +79,7 @@ class LibraryItemController {
 
       return res.json(item)
     }
-    res.json(req.libraryItem.toOldJSON())
+    res.json(req.libraryItem.toOldJSON(hideTags))
   }
 
   /**
@@ -257,7 +258,7 @@ class LibraryItemController {
     }
     res.json({
       updated: hasUpdates,
-      libraryItem: req.libraryItem.toOldJSON()
+      libraryItem: req.libraryItem.toOldJSON(!req.user.isAdminOrUp)
     })
   }
 
@@ -486,7 +487,7 @@ class LibraryItemController {
     await req.libraryItem.media.save()
 
     SocketAuthority.libraryItemEmitter('item_updated', req.libraryItem)
-    res.json(req.libraryItem.toOldJSON())
+    res.json(req.libraryItem.toOldJSON(!req.user.isAdminOrUp))
   }
 
   /**
@@ -695,8 +696,9 @@ class LibraryItemController {
     const libraryItems = await Database.libraryItemModel.findAllExpandedWhere({
       id: libraryItemIds
     })
+    const hideTags = !req.user.isAdminOrUp
     res.json({
-      libraryItems: libraryItems.map((li) => li.toOldJSONExpanded())
+      libraryItems: libraryItems.map((li) => li.toOldJSONExpanded(hideTags))
     })
   }
 

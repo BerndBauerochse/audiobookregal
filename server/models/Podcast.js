@@ -423,7 +423,7 @@ class Podcast extends Model {
    *
    * @param {string} libraryItemId
    */
-  toOldJSON(libraryItemId) {
+  toOldJSON(libraryItemId, hideTags = false) {
     if (!libraryItemId) {
       throw new Error(`[Podcast] Cannot convert to old JSON because libraryItemId is not provided`)
     }
@@ -436,7 +436,7 @@ class Podcast extends Model {
       libraryItemId: libraryItemId,
       metadata: this.oldMetadataToJSON(),
       coverPath: this.coverPath,
-      tags: this.tags || [],
+      tags: hideTags ? [] : (this.tags || []),
       episodes: this.podcastEpisodes.map((episode) => episode.toOldJSON(libraryItemId)),
       autoDownloadEpisodes: this.autoDownloadEpisodes,
       autoDownloadSchedule: this.autoDownloadSchedule,
@@ -446,13 +446,13 @@ class Podcast extends Model {
     }
   }
 
-  toOldJSONMinified() {
+  toOldJSONMinified(hideTags = false) {
     return {
       id: this.id,
       // Minified metadata and expanded metadata are the same
       metadata: this.oldMetadataToJSONExpanded(),
       coverPath: this.coverPath,
-      tags: this.tags || [],
+      tags: hideTags ? [] : (this.tags || []),
       numEpisodes: this.podcastEpisodes?.length || 0,
       autoDownloadEpisodes: this.autoDownloadEpisodes,
       autoDownloadSchedule: this.autoDownloadSchedule,
@@ -463,7 +463,7 @@ class Podcast extends Model {
     }
   }
 
-  toOldJSONExpanded(libraryItemId) {
+  toOldJSONExpanded(libraryItemId, hideTags = false) {
     if (!libraryItemId) {
       throw new Error(`[Podcast] Cannot convert to old JSON because libraryItemId is not provided`)
     }
@@ -476,7 +476,7 @@ class Podcast extends Model {
       libraryItemId: libraryItemId,
       metadata: this.oldMetadataToJSONExpanded(),
       coverPath: this.coverPath,
-      tags: this.tags || [],
+      tags: hideTags ? [] : (this.tags || []),
       episodes: this.podcastEpisodes.map((e) => e.toOldJSONExpanded(libraryItemId)),
       autoDownloadEpisodes: this.autoDownloadEpisodes,
       autoDownloadSchedule: this.autoDownloadSchedule,

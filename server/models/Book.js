@@ -613,7 +613,7 @@ class Book extends Model {
    *
    * @param {string} libraryItemId
    */
-  toOldJSON(libraryItemId) {
+  toOldJSON(libraryItemId, hideTags = false) {
     if (!libraryItemId) {
       throw new Error(`[Book] Cannot convert to old JSON because libraryItemId is not provided`)
     }
@@ -629,14 +629,14 @@ class Book extends Model {
       libraryItemId: libraryItemId,
       metadata: this.oldMetadataToJSON(),
       coverPath: this.coverPath,
-      tags: this.tags || [],
+      tags: hideTags ? [] : (this.tags || []),
       audioFiles: structuredClone(this.audioFiles),
       chapters: structuredClone(this.chapters),
       ebookFile: structuredClone(this.ebookFile)
     }
   }
 
-  toOldJSONMinified() {
+  toOldJSONMinified(hideTags = false) {
     if (!this.authors) {
       throw new Error(`[Book] Cannot convert to old JSON because authors are not loaded`)
     }
@@ -648,7 +648,7 @@ class Book extends Model {
       id: this.id,
       metadata: this.oldMetadataToJSONMinified(),
       coverPath: this.coverPath,
-      tags: this.tags || [],
+      tags: hideTags ? [] : (this.tags || []),
       numTracks: this.includedAudioFiles.length,
       numAudioFiles: this.audioFiles?.length || 0,
       numChapters: this.chapters?.length || 0,
@@ -658,7 +658,7 @@ class Book extends Model {
     }
   }
 
-  toOldJSONExpanded(libraryItemId) {
+  toOldJSONExpanded(libraryItemId, hideTags = false) {
     if (!libraryItemId) {
       throw new Error(`[Book] Cannot convert to old JSON because libraryItemId is not provided`)
     }
@@ -674,7 +674,7 @@ class Book extends Model {
       libraryItemId: libraryItemId,
       metadata: this.oldMetadataToJSONExpanded(),
       coverPath: this.coverPath,
-      tags: this.tags || [],
+      tags: hideTags ? [] : (this.tags || []),
       audioFiles: structuredClone(this.audioFiles),
       chapters: structuredClone(this.chapters),
       ebookFile: structuredClone(this.ebookFile),

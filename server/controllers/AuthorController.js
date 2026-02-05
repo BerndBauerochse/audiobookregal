@@ -39,6 +39,7 @@ class AuthorController {
    */
   async findOne(req, res) {
     const include = (req.query.include || '').split(',')
+    const hideTags = !req.user.isAdminOrUp
 
     const authorJson = req.author.toOldJSON()
 
@@ -52,7 +53,7 @@ class AuthorController {
         libraryItems.forEach((li) => {
           if (li.media.series?.length) {
             li.media.series.forEach((series) => {
-              const itemWithSeries = li.toOldJSONMinified()
+              const itemWithSeries = li.toOldJSONMinified(hideTags)
               itemWithSeries.media.metadata.series = {
                 id: series.id,
                 name: series.name,
@@ -81,7 +82,7 @@ class AuthorController {
       }
 
       // Minify library items
-      authorJson.libraryItems = libraryItems.map((li) => li.toOldJSONMinified())
+      authorJson.libraryItems = libraryItems.map((li) => li.toOldJSONMinified(hideTags))
     }
 
     return res.json(authorJson)

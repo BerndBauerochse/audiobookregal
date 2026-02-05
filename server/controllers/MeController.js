@@ -304,6 +304,7 @@ class MeController {
    */
   async getAllLibraryItemsInProgress(req, res) {
     const limit = !isNaN(req.query.limit) ? Number(req.query.limit) || 25 : 25
+    const hideTags = !req.user.isAdminOrUp
 
     const mediaProgressesInProgress = req.user.mediaProgresses.filter((mp) => !mp.isFinished && (mp.currentTime > 0 || mp.ebookProgress > 0))
 
@@ -320,7 +321,7 @@ class MeController {
           const episode = libraryItem.media.podcastEpisodes.find((ep) => ep.id === oldMediaProgress.episodeId)
           if (episode) {
             const libraryItemWithEpisode = {
-              ...libraryItem.toOldJSONMinified(),
+              ...libraryItem.toOldJSONMinified(hideTags),
               recentEpisode: episode.toOldJSON(libraryItem.id),
               progressLastUpdate: oldMediaProgress.lastUpdate
             }
@@ -328,7 +329,7 @@ class MeController {
           }
         } else if (!oldMediaProgress.episodeId) {
           itemsInProgress.push({
-            ...libraryItem.toOldJSONMinified(),
+            ...libraryItem.toOldJSONMinified(hideTags),
             progressLastUpdate: oldMediaProgress.lastUpdate
           })
         }

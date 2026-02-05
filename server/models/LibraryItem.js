@@ -296,9 +296,10 @@ class LibraryItem extends Model {
     const { libraryItems, count } = await libraryFilters.getFilteredLibraryItems(library.id, user, options)
     Logger.debug(`Loaded ${libraryItems.length} of ${count} items for libary page in ${((Date.now() - start) / 1000).toFixed(2)}s`)
 
+    const hideTags = !user?.isAdminOrUp
     return {
       libraryItems: libraryItems.map((li) => {
-        const oldLibraryItem = li.toOldJSONMinified()
+        const oldLibraryItem = li.toOldJSONMinified(hideTags)
         if (li.collapsedSeries) {
           oldLibraryItem.collapsedSeries = li.collapsedSeries
         }
@@ -916,7 +917,7 @@ class LibraryItem extends Model {
     return this.libraryFiles.map((lf) => new LibraryFile(lf).toJSON())
   }
 
-  toOldJSON() {
+  toOldJSON(hideTags = false) {
     if (!this.media) {
       throw new Error(`[LibraryItem] Cannot convert to old JSON without media for library item "${this.id}"`)
     }
@@ -940,13 +941,13 @@ class LibraryItem extends Model {
       isMissing: !!this.isMissing,
       isInvalid: !!this.isInvalid,
       mediaType: this.mediaType,
-      media: this.media.toOldJSON(this.id),
+      media: this.media.toOldJSON(this.id, hideTags),
       // LibraryFile JSON includes a fileType property that may not be saved in libraryFiles column in the database
       libraryFiles: this.getLibraryFilesJson()
     }
   }
 
-  toOldJSONMinified() {
+  toOldJSONMinified(hideTags = false) {
     if (!this.media) {
       throw new Error(`[LibraryItem] Cannot convert to old JSON without media for library item "${this.id}"`)
     }
@@ -968,13 +969,13 @@ class LibraryItem extends Model {
       isMissing: !!this.isMissing,
       isInvalid: !!this.isInvalid,
       mediaType: this.mediaType,
-      media: this.media.toOldJSONMinified(),
+      media: this.media.toOldJSONMinified(hideTags),
       numFiles: this.libraryFiles.length,
       size: this.size
     }
   }
 
-  toOldJSONExpanded() {
+  toOldJSONExpanded(hideTags = false) {
     return {
       id: this.id,
       ino: this.ino,
@@ -994,7 +995,7 @@ class LibraryItem extends Model {
       isMissing: !!this.isMissing,
       isInvalid: !!this.isInvalid,
       mediaType: this.mediaType,
-      media: this.media.toOldJSONExpanded(this.id),
+      media: this.media.toOldJSONExpanded(this.id, hideTags),
       // LibraryFile JSON includes a fileType property that may not be saved in libraryFiles column in the database
       libraryFiles: this.getLibraryFilesJson(),
       size: this.size

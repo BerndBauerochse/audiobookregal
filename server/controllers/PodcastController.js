@@ -434,7 +434,7 @@ class PodcastController {
       }
     }
 
-    res.json(req.libraryItem.toOldJSONExpanded())
+    res.json(req.libraryItem.toOldJSONExpanded(!req.user.isAdminOrUp))
   }
 
   /**
@@ -515,7 +515,7 @@ class PodcastController {
     await req.libraryItem.media.save()
 
     SocketAuthority.libraryItemEmitter('item_updated', req.libraryItem)
-    res.json(req.libraryItem.toOldJSON())
+    res.json(req.libraryItem.toOldJSON(!req.user.isAdminOrUp))
   }
 
   /**
