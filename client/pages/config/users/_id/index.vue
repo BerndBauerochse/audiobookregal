@@ -25,49 +25,12 @@
         <div class="bg-green-500/10 border border-green-500/30 rounded p-3">
           <div class="flex items-center">
             <span class="material-symbols text-green-400 mr-2">shield</span>
-            <p class="text-sm text-green-400">Privacy Protection Active</p>
+            <p class="text-sm text-green-400">Datenschutz aktiv</p>
           </div>
-          <p class="text-xs text-gray-400 mt-2">Detailed listening activity is not tracked on this server to protect user privacy.</p>
+          <p class="text-xs text-gray-400 mt-2">Detaillierte Hörstatistiken werden auf diesem Server nicht angezeigt, um die Privatsphäre der Benutzer zu schützen.</p>
         </div>
       </div>
-      <div class="w-full h-px bg-white/10 my-2" />
-      <div class="py-2">
-        <h1 class="text-lg mb-2 text-white/90 px-2 sm:px-0">{{ $strings.HeaderSavedMediaProgress }}</h1>
-
-        <table v-if="mediaProgress.length" class="userAudiobooksTable">
-          <tr class="bg-primary/40">
-            <th class="w-16 text-left">{{ $strings.LabelItem }}</th>
-            <th class="text-left"></th>
-            <th class="w-32">{{ $strings.LabelProgress }}</th>
-            <th class="w-40 hidden sm:table-cell">{{ $strings.LabelStartedAt }}</th>
-            <th class="w-40 hidden sm:table-cell">{{ $strings.LabelLastUpdate }}</th>
-          </tr>
-          <tr v-for="item in mediaProgress" :key="item.id" :class="!item.isFinished ? '' : 'isFinished'">
-            <td>
-              <covers-preview-cover v-if="item.coverPath" :width="50" :src="$store.getters['globals/getLibraryItemCoverSrcById'](item.libraryItemId, item.mediaUpdatedAt)" :book-cover-aspect-ratio="bookCoverAspectRatio" :show-resolution="false" />
-              <div v-else class="bg-primary flex items-center justify-center text-center text-xs text-gray-400 p-1" :style="{ width: '50px', height: 50 * bookCoverAspectRatio + 'px' }">No Cover</div>
-            </td>
-            <td>
-              <p>{{ item.displayTitle || 'Unknown' }}</p>
-              <p v-if="item.displaySubtitle" class="text-white/50 text-sm font-sans">{{ item.displaySubtitle }}</p>
-            </td>
-            <td class="text-center">
-              <p class="text-sm">{{ Math.floor(item.progress * 100) }}%</p>
-            </td>
-            <td class="text-center hidden sm:table-cell">
-              <ui-tooltip v-if="item.startedAt" direction="top" :text="$formatDatetime(item.startedAt, dateFormat, timeFormat)">
-                <p class="text-sm">{{ $dateDistanceFromNow(item.startedAt) }}</p>
-              </ui-tooltip>
-            </td>
-            <td class="text-center hidden sm:table-cell">
-              <ui-tooltip v-if="item.lastUpdate" direction="top" :text="$formatDatetime(item.lastUpdate, dateFormat, timeFormat)">
-                <p class="text-sm">{{ $dateDistanceFromNow(item.lastUpdate) }}</p>
-              </ui-tooltip>
-            </td>
-          </tr>
-        </table>
-        <p v-else class="text-white/50">{{ $strings.MessageNoMediaProgress }}</p>
-      </div>
+      <!-- Media Progress section hidden for privacy -->
     </div>
   </div>
 </template>
