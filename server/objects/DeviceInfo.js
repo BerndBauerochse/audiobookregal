@@ -1,4 +1,5 @@
-const uuidv4 = require("uuid").v4
+const uuidv4 = require('uuid').v4
+const { stripAllTags } = require('../utils/htmlSanitizer')
 
 // Privacy Enhancement: Generic device identifiers for anonymization
 const PRIVACY_GENERIC_DEVICE = {
@@ -14,6 +15,9 @@ const PRIVACY_GENERIC_DEVICE = {
 }
 
 class DeviceInfo {
+  /** @type {string[]} Fields to sanitize when loading from stored data */
+  static stringFields = ['deviceId', 'clientVersion', 'manufacturer', 'model', 'sdkVersion', 'clientName', 'deviceName']
+
   constructor(deviceInfo = null) {
     this.id = null
     this.userId = null
@@ -44,7 +48,7 @@ class DeviceInfo {
   construct(deviceInfo) {
     for (const key in deviceInfo) {
       if (deviceInfo[key] !== undefined && this[key] !== undefined) {
-        this[key] = deviceInfo[key]
+        this[key] = DeviceInfo.stringFields.includes(key) ? stripAllTags(deviceInfo[key]) : deviceInfo[key]
       }
     }
   }
@@ -110,7 +114,8 @@ class DeviceInfo {
    * @returns {string}
    */
   get deviceDescriptionInternal() {
-    if (this.model) { // Set from mobile apps
+    if (this.model) {
+      // Set from mobile apps
       if (this.sdkVersion) return `${this.model} SDK ${this.sdkVersion} / v${this.clientVersion}`
       return `${this.model} / v${this.clientVersion}`
     }
@@ -124,7 +129,7 @@ class DeviceInfo {
       this.userId,
       this.clientVersion,
       uuidv4() // Add randomness instead of device fingerprinting data
-    ].map(k => k || '')
+    ].map((k) => k || '')
     return 'temp-' + Buffer.from(keys.join('-'), 'utf-8').toString('base64')
   }
 
@@ -143,7 +148,8 @@ class DeviceInfo {
     this.osVersion = PRIVACY_GENERIC_DEVICE.osVersion
     this.deviceType = 'generic'
 
-    this.clientVersion = clientDeviceInfo?.clientVersion || serverVersion
+    // Sanitize clientVersion but keep anonymized device info
+    this.clientVersion = stripAllTags(clientDeviceInfo?.clientVersion) || serverVersion
     this.manufacturer = PRIVACY_GENERIC_DEVICE.manufacturer
     this.model = PRIVACY_GENERIC_DEVICE.model
     this.sdkVersion = PRIVACY_GENERIC_DEVICE.sdkVersion

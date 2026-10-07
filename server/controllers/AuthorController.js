@@ -10,7 +10,7 @@ const CacheManager = require('../managers/CacheManager')
 const CoverManager = require('../managers/CoverManager')
 const AuthorFinder = require('../finders/AuthorFinder')
 
-const { reqSupportsWebp, isValidASIN } = require('../utils/index')
+const { reqSupportsWebp, isValidASIN, clampPositiveInt } = require('../utils/index')
 
 const naturalSort = createNewSortInstance({
   comparer: new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' }).compare
@@ -114,7 +114,7 @@ class AuthorController {
       payload.lastFirst = Database.authorModel.getLastFirst(payload.name)
     }
 
-    // Check if author name matches another author and merge the authors
+    // Check if author name matches another author in the same library and merge the authors
     let existingAuthor = null
     if (authorNameUpdate) {
       existingAuthor = await Database.authorModel.findOne({
@@ -122,7 +122,8 @@ class AuthorController {
           id: {
             [sequelize.Op.not]: req.author.id
           },
-          name: payload.name
+          name: payload.name,
+          libraryId: req.author.libraryId
         }
       })
     }
@@ -149,7 +150,7 @@ class AuthorController {
       })
       if (libraryItems.length) {
         await Database.bookAuthorModel.removeByIds(req.author.id) // Remove all old BookAuthor
-        await Database.bookAuthorModel.bulkCreate(bookAuthorsToCreate) // Create all new BookAuthor
+        await Database.bookAuthorModel.bulkCreate(bookAuthorsToCreate, { ignoreDuplicates: true }) // Create all new unique BookAuthor
         for (const libraryItem of libraryItems) {
           await libraryItem.saveMetadataFile()
         }
@@ -412,8 +413,8 @@ class AuthorController {
 
     const options = {
       format: format || (reqSupportsWebp(req) ? 'webp' : 'jpeg'),
-      height: height ? parseInt(height) : null,
-      width: width ? parseInt(width) : null
+      height: clampPositiveInt(height ? parseInt(height) : null, 4096),
+      width: clampPositiveInt(width ? parseInt(width) : null, 4096)
     }
     return CacheManager.handleAuthorCache(res, authorId, options)
   }
@@ -427,6 +428,7 @@ class AuthorController {
   async middleware(req, res, next) {
     const author = await Database.authorModel.findByPk(req.params.id)
     if (!author) return res.sendStatus(404)
+    if (!req.user.checkCanAccessLibrary(author.libraryId)) return res.sendStatus(404)
 
     if (req.method == 'DELETE' && !req.user.canDelete) {
       Logger.warn(`[AuthorController] User "${req.user.username}" attempted to delete without permission`)
